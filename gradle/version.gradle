@@ -1,0 +1,32 @@
+// -*- coding: utf-8; mode: groovy -*-
+
+buildscript {
+	repositories {
+		mavenCentral()
+		maven { url "https://plugins.gradle.org/m2/" }
+	}
+	dependencies {
+		classpath 'org.ajoberstar:grgit:1.7.0'
+	}
+}
+
+ext {
+	git = org.ajoberstar.grgit.Grgit.open(file('.'))
+	revision = git.head().abbreviatedId
+}
+
+import java.text.SimpleDateFormat
+// LocalDateTime.now().format("yyyyMMdd") は参照できないと言われる...
+version = new SimpleDateFormat('yyyyMMdd').format(new Date()) + "-" + revision +
+	(git.branch.current.name != "master" ? "-SNAPSHOT" : "") +
+	(git.status().isClean() ? "" : "+dirty")
+
+if (System.getenv('CIRCLE_TAG') != null) {
+	version = System.getenv('CIRCLE_TAG')
+}
+
+task showVersion {
+	doLast {
+		println version
+	}
+}
