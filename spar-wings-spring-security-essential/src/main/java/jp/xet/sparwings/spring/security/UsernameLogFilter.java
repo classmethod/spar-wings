@@ -38,6 +38,8 @@ import org.slf4j.MDC;
  */
 public class UsernameLogFilter extends OncePerRequestFilter {
 	
+	public static final String STORED_MDC_KEY = "STORED_MDC_KEY";
+	
 	private static final String USER_KEY = "username";
 	
 	
@@ -57,6 +59,9 @@ public class UsernameLogFilter extends OncePerRequestFilter {
 			String username = auth.getName();
 			successfulRegistration = registerUsername(username);
 		}
+		
+		// request scope で MDC の値を設定
+		request.setAttribute(STORED_MDC_KEY, MDC.getCopyOfContextMap());
 		
 		try {
 			filterChain.doFilter(request, response);

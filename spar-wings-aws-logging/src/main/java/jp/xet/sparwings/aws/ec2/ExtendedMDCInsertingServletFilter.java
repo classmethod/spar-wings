@@ -38,6 +38,7 @@ import org.slf4j.MDC;
  * @since 0.30
  * @author daisuke
  * @see ch.qos.logback.classic.helpers.MDCInsertingServletFilter
+ * @see jp.xet.sparwings.spring.security.UsernameLogFilter
  */
 public class ExtendedMDCInsertingServletFilter extends OncePerRequestFilter {
 	
@@ -55,6 +56,8 @@ public class ExtendedMDCInsertingServletFilter extends OncePerRequestFilter {
 	
 	static final String REQUEST_X_FORWARDED_FOR = "xForwardedFor";
 	
+	static final String STORED_MDC_KEY = "STORED_MDC_KEY";
+	
 	@Setter
 	@Getter
 	private String prefix = "req_";
@@ -71,6 +74,8 @@ public class ExtendedMDCInsertingServletFilter extends OncePerRequestFilter {
 		
 		try {
 			insertIntoMDC(request);
+			// アクセストークンから username を取得できなかった時にこの時点の MDC をログ出力する為 request scope で MDC の値を設定
+			request.setAttribute(STORED_MDC_KEY, MDC.getCopyOfContextMap());
 			filterChain.doFilter(request, response);
 		} finally {
 			clearMDC();
