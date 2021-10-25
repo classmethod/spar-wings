@@ -130,7 +130,7 @@ public class SqsMessagePoller { // NOPMD - cc
 	 * 
 	 * @since 0.3
 	 */
-	@Scheduled(fixedDelay = 1) // SUPPRESS CHECKSTYLE bug?
+	@Scheduled(fixedDelay = 120000) // SUPPRESS CHECKSTYLE bug?
 	public void loop() { // NOPMD - cc
 		try {
 			List<Message> messages = receiveMessages();
