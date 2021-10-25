@@ -130,7 +130,7 @@ public class SqsMessagePoller { // NOPMD - cc
 	 * 
 	 * @since 0.3
 	 */
-	@Scheduled(fixedDelayString="${metropolis.sqs.message.poller.delay:1}") // SUPPRESS CHECKSTYLE bug?
+	@Scheduled(fixedDelayString = "${metropolis.sqs.message.poller.delay:1}") // SUPPRESS CHECKSTYLE bug?
 	public void loop() { // NOPMD - cc
 		try {
 			List<Message> messages = receiveMessages();
