@@ -138,7 +138,7 @@ public class SqsMessagePoller { // NOPMD - cc
 				log.trace("No SQS message received for {}", handlerName);
 				return;
 			}
-			log.debug("{} SQS messages are received for {}", messages.size(), handlerName);
+			log.info("{} SQS messages are received for {}. maxNumberOfMessages {}", messages.size(), handlerName, maxNumberOfMessages);
 			messages.stream().parallel().forEach(this::handleMessage);
 		} catch (Throwable e) { // NOPMD
 			log.error("Exception occurred while processing Handler: {}. Error Message: {}", handlerName, e.getMessage(),
