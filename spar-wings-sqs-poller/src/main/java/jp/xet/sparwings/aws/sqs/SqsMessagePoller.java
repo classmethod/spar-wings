@@ -25,6 +25,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -99,6 +100,10 @@ public class SqsMessagePoller { // NOPMD - cc
 	@Setter
 	private int maxNumberOfMessages = 10;
 	
+	@Getter
+	@Setter
+	private int numberOfPollerThreads = 1;
+	
 	
 	/**
 	 * コンストラクタ
@@ -132,20 +137,23 @@ public class SqsMessagePoller { // NOPMD - cc
 	 */
 	@Scheduled(fixedDelayString = "${metropolis.sqs.message.poller.delay:1}") // SUPPRESS CHECKSTYLE bug?
 	public void loop() { // NOPMD - cc
-		try {
-			List<Message> messages = receiveMessages();
-			if (messages.isEmpty()) {
-				log.trace("No SQS message received for {}", handlerName);
-				return;
+		IntStream.range(0, numberOfPollerThreads).parallel().forEach(value -> {
+			try {
+				List<Message> messages = receiveMessages();
+				if (messages.isEmpty()) {
+					log.trace("No SQS message received for {}", handlerName);
+					return;
+				}
+				log.info("{} SQS messages are received for {}. maxNumberOfMessages {}", messages.size(), handlerName,
+						maxNumberOfMessages);
+				messages.stream().parallel().forEach(this::handleMessage);
+			} catch (Throwable e) { // NOPMD
+				log.error("Exception occurred while processing Handler: {}. Error Message: {}", handlerName,
+						e.getMessage(),
+						e);
+				// このメソッドは明示的に呼び出されず例外をハンドリングできないのでログをはいて例外を握り潰す
 			}
-			log.info("{} SQS messages are received for {}. maxNumberOfMessages {}", messages.size(), handlerName,
-					maxNumberOfMessages);
-			messages.stream().parallel().forEach(this::handleMessage);
-		} catch (Throwable e) { // NOPMD
-			log.error("Exception occurred while processing Handler: {}. Error Message: {}", handlerName, e.getMessage(),
-					e);
-			// このメソッドは明示的に呼び出されず例外をハンドリングできないのでログをはいて例外を握り潰す
-		}
+		});
 	}
 	
 	private List<Message> receiveMessages() {
